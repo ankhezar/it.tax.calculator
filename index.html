@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Italy Tax Calc 2025 (Partita IVA)</title>
+    <style>
+        :root {
+            --primary: #008C45;       
+            --primary-hover: #006b35; 
+            --primary-subtle: #f0fdf4;
+            --secondary: #CD212A;
+            --bg-body: #f8fafc;       
+            --bg-card: #ffffff;
+            --bg-input: #ffffff;
+            --text-main: #0f172a;     
+            --text-muted: #64748b;    
+            --border: #e2e8f0;        
+            --ring-focus: rgba(0, 140, 69, 0.3);
+            --success-text: #059669;  
+            --danger-text: #dc2626;   
+            --warning-bg: #fffbeb;    
+            --warning-text: #92400e;  
+            --breach-bg: #fef2f2;     
+            --breach-border: #fecaca; 
+            --badge-bg: #f1f5f9;
+            --badge-text: #475569;
+        }
+        [data-theme="dark"] {
+            --primary: #22c55e; --primary-hover: #16a34a; --primary-subtle: #052e16;
+            --secondary: #ef4444;
+            --bg-body: #0f172a; --bg-card: #1e293b; --bg-input: #0f172a;
+            --text-main: #f8fafc; --text-muted: #94a3b8; --border: #334155;
+            --ring-focus: rgba(34, 197, 94, 0.3); --success-text: #34d399;
+            --danger-text: #f87171; --warning-bg: #451a03; --warning-text: #fcd34d;
+            --breach-bg: #450a0a; --breach-border: #7f1d1d; --badge-bg: #334155; --badge-text: #cbd5e1;
+        }
+        * { box-sizing: border-box; touch-action: manipulation; }
+        body {
+            font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main);
+            margin: 0; padding: 24px; display: flex; flex-direction: column; align-items: center; line-height: 1.5;
+        }
+        .container {
+            background-color: var(--bg-card); width: 100%; max-width: 720px; padding: 2rem;
+            border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 480px) {
+            body { padding: 0; } .container { padding: 1.25rem 1rem; border: none; border-radius: 0; }
+        }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .brand { display: flex; align-items: center; gap: 16px; }
+        .brand-logo { font-size: 2.5rem; line-height: 1; cursor: default; }
+        .brand-text h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+        .year-badge {
+            background-color: var(--primary-subtle); color: var(--primary); font-size: 0.75rem;
+            font-weight: 600; padding: 2px 10px; border-radius: 9999px; margin-left: 8px; vertical-align: middle;
+        }
+        .controls { display: flex; gap: 8px; }
+        .btn-icon {
+            background: transparent; border: 1px solid var(--border); color: var(--text-main);
+            padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+        }
+        .toggle-group { display: flex; background: var(--bg-body); padding: 4px; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+        .toggle-btn { flex: 1; text-align: center; padding: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); border-radius: 8px; font-size: 0.9rem; transition: all 0.2s; }
+        .toggle-btn.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .btn-content { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (max-width: 600px) { .input-grid { grid-template-columns: 1fr; gap: 1rem; } }
+        
+        .form-group { position: relative; }
+        .label-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.6rem; color: var(--text-main); }
+        
+        .help-wrapper { position: relative; display: inline-flex; align-items: center; }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        
+        /* INPUT FIX: Hide Native Spinners */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        .form-control {
+            width: 100%; height: 48px; padding: 0 16px; padding-right: 70px; border: 1px solid var(--border);
+            background-color: var(--bg-input); color: var(--text-main); border-radius: 10px; font-size: 1rem; appearance: none;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--ring-focus); }
+        select.form-control { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 16px center; background-size: 16px; padding-right: 40px; }
+        
+        .switch-container { display: flex; align-items: center; justify-content: space-between; height: 48px; padding: 0 16px; border: 1px solid var(--border); border-radius: 10px; background-color: var(--bg-input); cursor: pointer; transition: border-color 0.2s; }
+        .switch-container:hover { border-color: var(--text-muted); }
+        .switch-label { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .spinner-group { position: absolute; right: 6px; top: 6px; bottom: 6px; display: flex; gap: 4px; }
+        .spin-btn { width: 28px; height: 100%; border: none; background: var(--bg-body); border-radius: 6px; color: var(--primary); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .spin-btn:hover { background: var(--primary-subtle); }
+        
+        .info-trigger { cursor: pointer; color: var(--primary); margin-left: 6px; font-size: 0.9rem; background: var(--primary-subtle); width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-weight: bold; display: inline-block; flex-shrink: 0; }
+        
+        .popover {
+            display: none; position: absolute; top: 24px; left: 0; width: 280px; background: var(--bg-card); border: 1px solid var(--border); 
+            padding: 16px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15); z-index: 1000; font-size: 0.85rem; 
+            font-weight: 400; color: var(--text-muted); line-height: 1.5; margin-top: 6px; text-align: left; white-space: normal;
+        }
+        .popover.visible { display: block; animation: fadeIn 0.2s ease-out; }
+        .popover.right { left: auto; right: 0; }
+        @media (max-width: 450px) { .popover { width: 260px; } .popover.right { right: -10px; } }
+        .pop-title { font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px;}
+        .pop-list { margin: 8px 0 8px 0; padding-left: 1.2rem; font-size: 0.8rem; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .section-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin: 1.5rem 0 1rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        .view-controls { display: flex; justify-content: center; margin-bottom: 1rem; margin-top: 2rem; }
+        .view-toggle { display: inline-flex; background: var(--bg-body); padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+        .view-btn { padding: 6px 16px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-muted); border-radius: 6px; transition: all 0.2s; }
+        .view-btn.active { background: var(--bg-card); color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        
+        .results-card { background-color: var(--bg-body); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .result-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.95rem; position: relative; }
+        .result-row.sub { padding-left: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted); border-left: 2px solid var(--border); }
+        .result-row.total { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-weight: 700; font-size: 1.25rem; color: var(--text-main); }
+        .result-row.summary { justify-content: flex-end; margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); text-align: right; }
+        .val { font-family: 'Courier New', monospace; font-weight: 700; }
+        .text-red { color: var(--danger-text); }
+        .text-green { color: var(--success-text); }
+        .badge { display: inline-block; background-color: var(--badge-bg); color: var(--badge-text); font-size: 0.75rem; padding: 1px 8px; border-radius: 6px; font-weight: 500; margin-left: 8px; vertical-align: middle; }
+        
+        .limit-alert { margin-top: 1rem; padding: 16px; border-radius: 12px; background-color: var(--warning-bg); color: var(--warning-text); font-size: 0.9rem; font-weight: 500; display: none; border: 1px solid rgba(0,0,0,0.05); line-height: 1.5; }
+        .limit-alert.breach { background-color: var(--breach-bg); color: var(--danger-text); border: 1px solid var(--breach-border); }
+        .highlight-tag { color: var(--secondary); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-left: 6px; border: 1px solid var(--secondary); padding: 1px 4px; border-radius: 4px;}
+
+        /* FAQ STYLES */
+        .faq-container { width: 100%; max-width: 720px; padding: 0 1rem 2rem 1rem; color: var(--text-muted); }
+        .faq-card { background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .faq-title { color: var(--text-main); font-weight: 700; font-size: 1.1rem; margin-top: 0; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;}
+        .faq-icon { background: var(--primary-subtle); color: var(--primary); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+        .faq-col { background: var(--bg-body); padding: 1rem; border-radius: 10px; border: 1px solid var(--border); }
+        .faq-col h4 { margin: 0 0 0.5rem 0; color: var(--text-main); font-size: 0.95rem; }
+        .faq-col p { font-size: 0.85rem; margin: 0; line-height: 1.5; }
+        .faq-col ul { margin: 0.5rem 0 0 0; padding-left: 1.2rem; font-size: 0.85rem; }
+        .faq-col li { margin-bottom: 4px; }
+        .faq-grey-area { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+        .faq-grey-title { font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; display: block; }
+        @media (max-width: 600px) { .faq-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="brand">
+            <div class="brand-logo">🇮🇹</div>
+            <div class="brand-text">
+                <h1>Partita IVA <span class="year-badge">2025</span></h1>
+            </div>
+        </div>
+        <div class="controls">
+            <button class="btn-icon" onclick="toggleLang()" id="btn-lang">EN</button>
+            <button class="btn-icon" onclick="toggleTheme()" id="btn-theme">🌗</button>
+        </div>
+    </div>
+
+    <div class="toggle-group">
+        <div class="toggle-btn active" onclick="setMode('forfettario', event)" id="tab-forfettario">
+            <div class="btn-content">
+                <span data-t="tab_flat">Forfettario (Flat)</span>
+                <div class="help-wrapper">
+                    <span class="info-trigger" data-tip="pop-desc-flat">?</span>
+                    <div id="pop-desc-flat" class="popover"><span data-t="desc_flat"></span></div>
+                </div>
+            </div>
+        </div>
+        <div class="toggle-btn" onclick="setMode('ordinario', event)" id="tab-ordinario">
+            <div class="btn-content">
+                <span data-t="tab_ord">Ordinario (IRPEF)</span>
+                <div class="help-wrapper">
+                    <span class="info-trigger" data-tip="pop-desc-ord">?</span>
+                    <div id="pop-desc-ord" class="popover right"><span data-t="desc_ord"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title" data-t="sec_biz">Business Data</div>
+    <div class="input-grid">
+        <div class="form-group">
+            <div class="label-row">
+                <span class="help-wrapper">
+                    <span data-t="label_revenue">Annual Revenue</span>
+                    <span class="info-trigger" data-tip="pop-rev">?</span>
+                    <div id="pop-rev" class="popover"><span data-t="desc_revenue"></span></div>
+                </span>
+            </div>
+            <div class="input-wrapper">
+                <input type="number" id="revenue" class="form-control" value="40000" min="0" step="1000" oninput="calc()">
+                <div class="spinner-group">
+                    <button type="button" class="spin-btn" onclick="stepVal('revenue', -1)">−</button>
+                    <button type="button" class="spin-btn" onclick="stepVal('revenue', 1)">+</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="label-row">
+                <span class="help-wrapper">
+                    <span data-t="label_type">Business Activity</span>
+                    <span class="info-trigger" data-tip="pop-type">?</span>
+                    <div id="pop-type" class="popover right"><span data-t="desc_type"></span></div>
+                </span>
+            </div>
+            <select id="biz-type" class="form-control" onchange="calc()">
+                <option value="freelance" data-t="opt_freelance">Freelancer (Gestione Separata)</option>
+                <option value="artisan" data-t="opt_artisan">Artisan / Trader (Commercianti)</option>
+                <option value="tech" data-t="opt_tech">IT / Digital (Code 67%)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Forfettario Only Inputs -->
+    <div id="inputs-forfettario">
+        <div class="input-grid">
+            <div class="form-group">
+                <div class="label-row">
+                    <span class="help-wrapper">
+                        <span data-t="label_startup">New Business (Start-up)</span>
+                        <span class="info-trigger" data-tip="pop-startup">?</span>
+                        <div id="pop-startup" class="popover"><span data-t="desc_startup"></span></div>
+                    </span>
+                </div>
+                <label class="switch-container" for="is-startup">
+                    <span class="switch-label" data-t="lbl_5pct">5% Tax Rate</span>
+                    <div class="switch">
+                        <input type="checkbox" id="is-startup" checked onchange="calc()">
+                        <span class="slider"></span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="form-group" id="group-inps-reduction" style="display:none;">
+                <div class="label-row">
+                    <span class="help-wrapper">
+                        <span data-t="label_inps_red">INPS Reduction</span>
+                        <span class="info-trigger" data-tip="pop-inps-red">?</span>
+                        <div id="pop-inps-red" class="popover right"><span data-t="desc_inps_red"></span></div>
+                    </span>
+                </div>
+                <label class="switch-container" for="is-inps-reduced">
+                    <span class="switch-label" data-t="lbl_35pct">-35% Contributions</span>
+                    <div class="switch">
+                        <input type="checkbox" id="is-inps-reduced" onchange="calc()">
+                        <span class="slider"></span>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ordinario Only Inputs -->
+    <div id="inputs-ordinario" style="display:none;">
+        <div class="input-grid">
+            <div class="form-group">
+                <div class="label-row">
+                    <span class="help-wrapper">
+                        <span data-t="label_expenses">Real Expenses</span>
+                        <span class="info-trigger" data-tip="pop-exp">?</span>
+                        <div id="pop-exp" class="popover"><span data-t="desc_exp"></span></div>
+                    </span>
+                </div>
+                <div class="input-wrapper">
+                    <input type="number" id="expenses-real" class="form-control" value="0" min="0" step="500" oninput="calc()">
+                    <div class="spinner-group">
+                        <button type="button" class="spin-btn" onclick="stepVal('expenses-real', -1)">−</button>
+                        <button type="button" class="spin-btn" onclick="stepVal('expenses-real', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="label-row">
+                    <span class="help-wrapper">
+                        <span data-t="label_impatriati">New Resident <span class="highlight-tag">Save 50%</span></span>
+                        <span class="info-trigger" data-tip="pop-imp">?</span>
+                        <div id="pop-imp" class="popover right"><span data-t="desc_imp"></span></div>
+                    </span>
+                </div>
+                <label class="switch-container" for="is-impatriati">
+                    <span class="switch-label" data-t="lbl_imp_active">Lavoratori Impatriati</span>
+                    <div class="switch">
+                        <input type="checkbox" id="is-impatriati" onchange="calc()">
+                        <span class="slider"></span>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW SECTION: Family & Dependents -->
+    <div class="section-title" data-t="sec_fam">Family & Dependents</div>
+    <div class="input-grid">
+        <div class="form-group">
+            <div class="label-row">
+                <span class="help-wrapper">
+                    <span data-t="label_kids">Children (< 21y)</span>
+                    <span class="info-trigger" data-tip="pop-kids">?</span>
+                    <div id="pop-kids" class="popover"><span data-t="desc_kids"></span></div>
+                </span>
+            </div>
+            <div class="input-wrapper">
+                <input type="number" id="kids" class="form-control" value="0" min="0" max="10" oninput="calc()">
+                <div class="spinner-group">
+                    <button type="button" class="spin-btn" onclick="stepVal('kids', -1)">−</button>
+                    <button type="button" class="spin-btn" onclick="stepVal('kids', 1)">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="label-row">
+                <span class="help-wrapper">
+                    <span data-t="label_spouse">Dependent Spouse</span>
+                    <span class="info-trigger" data-tip="pop-spouse">?</span>
+                    <div id="pop-spouse" class="popover right"><span data-t="desc_spouse"></span></div>
+                </span>
+            </div>
+            <label class="switch-container" for="is-spouse">
+                <span class="switch-label" data-t="lbl_spouse_check">Spouse Income < €2,840</span>
+                <div class="switch">
+                    <input type="checkbox" id="is-spouse" onchange="calc()">
+                    <span class="slider"></span>
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="view-controls">
+        <div class="view-toggle">
+            <div class="view-btn" onclick="setView('monthly')" id="view-mo" data-t="view_mo">Monthly</div>
+            <div class="view-btn active" onclick="setView('yearly')" id="view-yr" data-t="view_yr">Yearly</div>
+        </div>
+    </div>
+
+    <div class="results-card">
+        <!-- Expenses Row -->
+        <div class="result-row">
+            <span>
+                <span data-t="res_expenses">Deductible Expenses</span>
+                <span id="badge-exp" class="badge">0%</span>
+            </span>
+            <span class="val" id="out-exp">0.00 €</span>
+        </div>
+
+        <!-- Tax Base Row -->
+        <div class="result-row">
+            <span class="help-wrapper">
+                <span data-t="res_profit">Taxable Base</span>
+                <span class="info-trigger" data-tip="pop-taxbase">?</span>
+                <div id="pop-taxbase" class="popover"><span data-t="desc_taxbase"></span></div>
+            </span>
+            <span class="val" id="out-profit">0.00 €</span>
+        </div>
+
+        <!-- Impatriati Discount Row (Hidden by default) -->
+        <div id="row-imp-saving" class="result-row sub" style="display:none;">
+            <span data-t="res_imp_saving">Impatriati Relief (-50%)</span>
+            <span class="val text-green" id="out-imp-saving">0.00 €</span>
+        </div>
+
+        <!-- Income Tax Row -->
+        <div class="result-row">
+            <span>
+                <span data-t="res_tax">Income Tax</span>
+                <span id="badge-tax" class="badge">0%</span>
+            </span>
+            <span class="val text-red" id="out-tax">0.00 €</span>
+        </div>
+
+        <!-- INPS Row -->
+        <div class="result-row">
+            <span>
+                <span data-t="res_inps">INPS (Pension)</span>
+                <span id="badge-inps" class="badge">~26%</span>
+            </span>
+            <span class="val text-red" id="out-inps-total">0.00 €</span>
+        </div>
+        
+        <!-- NEW ROW: Family Benefits -->
+        <div id="row-family-benefits" class="result-row sub" style="display:none; color: var(--success-text);">
+            <span class="help-wrapper">
+                <span data-t="res_fam_ben">Family Benefits</span>
+                <span class="info-trigger" data-tip="pop-fam-res">?</span>
+                <div id="pop-fam-res" class="popover"><span data-t="desc_fam_res"></span></div>
+            </span>
+            <span class="val text-green" id="out-fam-ben">+0.00 €</span>
+        </div>
+
+        <!-- Net Income -->
+        <div class="result-row total">
+            <span id="lbl-net">Net Income (Year)</span>
+            <span class="val text-green" id="out-net">0.00 €</span>
+        </div>
+        <div class="result-row summary">
+            <span>
+                <span data-t="lbl_total_tax">Total Tax Burden:</span> 
+                <strong id="out-total-paid">0.00 €</strong> 
+                (<span id="out-effective-rate">0.0%</span>)
+            </span>
+        </div>
+    </div>
+
+    <div id="alert-box" class="limit-alert"></div>
+</div>
+
+<!-- FAQ SECTION -->
+<div class="faq-container">
+    <div class="faq-card">
+        <h3 class="faq-title">
+            <div class="faq-icon">?</div>
+            Freelancer vs. Artisan/Trader
+        </h3>
+        
+        <p style="margin-top:0; font-size: 0.9rem;">
+            In Italy, the difference isn't just a job title—it fundamentally changes <strong>how you pay Social Security (INPS)</strong>.
+        </p>
+
+        <div class="faq-grid">
+            <div class="faq-col">
+                <h4>1. Freelancer</h4>
+                <p><em>Libero Professionista</em></p>
+                <ul>
+                    <li><strong>Who:</strong> Consultants, Designers, Marketing, Senior Devs selling time/skill.</li>
+                    <li><strong>INPS:</strong> Gestione Separata.</li>
+                    <li><strong>Pros:</strong> No fixed annual costs. Earn €0, pay €0.</li>
+                    <li><strong>Cons:</strong> High rate (~26%) on every Euro.</li>
+                </ul>
+            </div>
+            <div class="faq-col">
+                <h4>2. Artisan / Trader</h4>
+                <p><em>Artigiano / Commerciante</em></p>
+                <ul>
+                    <li><strong>Who:</strong> E-commerce, Shop Owners, Agencies, Plumbers.</li>
+                    <li><strong>INPS:</strong> Gestione Artigiani.</li>
+                    <li><strong>Pros:</strong> Lower variable rate (~24%) + Access to 35% discount.</li>
+                    <li><strong>Cons:</strong> <strong>Fixed Cost ~4,400€/yr</strong> even if you earn nothing.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="faq-grey-area">
+            <span class="faq-grey-title">Where does IT / Digital fit?</span>
+            <p>
+                <strong>Scenario A (The Coder):</strong> You bill clients for hours or projects. You are usually a <strong>Freelancer</strong> (Gestione Separata).<br><br>
+                <strong>Scenario B (The App/SaaS):</strong> You sell subscriptions or software. You are an <strong>Artisan</strong> (Fixed costs apply).<br><br>
+                <strong>Scenario C (E-commerce):</strong> You sell goods (Dropshipping/FBA). You are a <strong>Trader</strong>. <br>
+                <em>Bonus:</em> E-commerce Traders get a <strong>60% expense deduction</strong> in Forfettario (Taxable base is only 40%).
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* 
+       ITALY 2025 CONFIGURATION 
+    */
+    const CONFIG = {
+        limits: { 
+            forfettario: 85000, 
+            impatriati_cap: 600000 
+        },
+        forfettario: {
+            rate_start: 0.05,
+            rate_std: 0.15,
+            coeffs: { freelance: 0.78, artisan: 0.67, tech: 0.67 } 
+        },
+        inps: {
+            gs_rate: 0.2607, 
+            artisan_fixed: 4427.04, 
+            artisan_min_income: 18415,
+            artisan_rate_excess: 0.24,
+            reduction_factor: 0.65 
+        },
+        irpef: [
+            { limit: 28000, rate: 0.23 },
+            { limit: 50000, rate: 0.35 },
+            { limit: 10000000, rate: 0.43 } 
+        ],
+        family: {
+            assegno_unico_min: 57.00, // Monthly min guarantee per child
+            spouse_limit: 80000 // Income limit for spouse deduction
+        },
+        addizionali: 0.017
+    };
+
+    const TEXT = {
+        en: {
+            tab_flat: "Forfettario (Flat)", tab_ord: "Ordinario (Standard)",
+            sec_biz: "Business Data", sec_fam: "Family & Dependents",
+            label_revenue: "Annual Revenue", label_type: "Activity Type", label_startup: "New Business (Start-up)",
+            label_inps_red: "INPS Discount", label_expenses: "Real Expenses", label_impatriati: "New Resident (Impatriati)",
+            label_kids: "Children (< 21y)", label_spouse: "Dependent Spouse", 
+            
+            opt_freelance: "Freelancer (Gestione Separata)", 
+            opt_artisan: "Artisan / Trader (Commercianti)", 
+            opt_tech: "IT / Digital / E-commerce",
+
+            lbl_5pct: "5% Substitute Tax", lbl_35pct: "-35% INPS Contributions", lbl_imp_active: "Activate 'Brain Drain' Regime",
+            lbl_spouse_check: "Spouse Income < €2,840",
+            
+            res_expenses: "Calculated Expenses", res_profit: "Taxable Base", res_tax: "Income Tax",
+            res_inps: "Social Security (INPS)", res_net: "Net Income", res_imp_saving: "New Resident Deduction",
+            res_fam_ben: "Family Benefits",
+            lbl_total_tax: "Total Deductions:",
+            
+            desc_flat: "<span class='pop-title'>Regime Forfettario</span>The best option for revenue < 85k€.<br><br>• <strong>Flat Tax:</strong> 15% (or 5% for first 5 years).<br>• <strong>No VAT:</strong> You don't charge VAT on invoices.<br>• <strong>Expenses:</strong> You cannot deduct real costs. Expenses are estimated via a coefficient.",
+            desc_ord: "<span class='pop-title'>Regime Ordinario</span>Mandatory if revenue > 85k€.<br><br>• <strong>Progressive Tax (IRPEF):</strong> 23% to 43%.<br>• <strong>VAT:</strong> You must charge VAT.<br>• <strong>Deductions:</strong> You can deduct real business expenses.<br>• <strong>Impatriati:</strong> Compatible with the 'New Resident' tax break.",
+            desc_revenue: "Enter total amount invoiced (Net of VAT/Rivalsa INPS).<br><br><strong>Limit:</strong> If you exceed €85,000, you will be forced into the Ordinary regime next year.",
+            desc_type: "Determines your expense coefficient and INPS fund.<br><br>• <strong>Freelancer:</strong> Consultants, Designers. (Gestione Separata).<br>• <strong>Artisan/Trader:</strong> Shop owners, Craftsmen. (Fixed INPS).",
+            desc_startup: "For the first 5 years of a completely new business, the flat tax is reduced from 15% to <strong>5%</strong>.",
+            desc_inps_red: "Only for Artisans/Traders in Forfettario.<br><br>You can apply for a <strong>35% reduction</strong> on both fixed and variable INPS contributions. (Must apply by Feb 28th).",
+            desc_imp: "<span class='pop-title'>Lavoratori Impatriati 2025</span>Tax break for workers moving to Italy.<br><br>• <strong>Benefit:</strong> 50% of income is tax-free.<br>• <strong>Limit:</strong> Up to €600,000 revenue.<br>• <strong>Incompatible</strong> with Flat Tax (Forfettario). You must use Ordinary Regime.",
+            
+            desc_kids: "<span class='pop-title'>Assegno Unico</span>Cash payment from INPS for each child under 21.<br><br><strong>Note:</strong> We calculate the <em>Minimum Guaranteed</em> amount (~€57/mo). The actual amount depends on your household ISEE (up to ~€200/mo).",
+            desc_spouse: "<span class='pop-title'>Dependent Spouse</span>If your spouse earns less than €2,840/year, you get a tax deduction.<br><br>⚠️ <strong>Ordinario Only:</strong> You cannot claim this deduction in the Forfettario (Flat Tax) regime.",
+            
+            desc_taxbase: "The amount you actually pay tax on.<br><strong>Forfettario:</strong> Revenue × Coefficient - INPS paid.<br><strong>Ordinario:</strong> Revenue - Expenses - INPS paid.",
+            desc_exp: "In Ordinary Regime, you deduct actual business costs (Equipment, Software, Office, etc) instead of a flat percentage.",
+            desc_fam_res: "Includes <strong>Assegno Unico</strong> cash payments (for kids) and Tax Deductions (for spouse). Added to your Net Income.",
+
+            view_mo: "Monthly", view_yr: "Yearly", net_mo: "Net (Monthly)", net_yr: "Net (Yearly)",
+            alert_limit: "⚠️ REVENUE LIMIT (85k): Above €85,000 you must switch to Regime Ordinario next year (or immediately if >100k).",
+            alert_imp: "ℹ️ NOTE: The 'New Resident' discount requires Regime Ordinario. You cannot use the 5%/15% Flat Tax."
+        },
+        it: {
+            tab_flat: "Regime Forfettario", tab_ord: "Regime Ordinario",
+            sec_biz: "Dati Attività", sec_fam: "Famiglia",
+            label_revenue: "Fatturato Annuo", label_type: "Tipo Attività", label_startup: "Nuova Attività (Start-up)",
+            label_inps_red: "Riduzione INPS", label_expenses: "Spese Reali", label_impatriati: "Rientro Cervelli (Impatriati)",
+            label_kids: "Figli (< 21 anni)", label_spouse: "Coniuge a carico",
+            
+            opt_freelance: "Libero Professionista (Gest. Separata)", 
+            opt_artisan: "Artigiano / Commerciante", 
+            opt_tech: "IT / E-commerce / Digitale",
+
+            lbl_5pct: "Aliquota 5%", lbl_35pct: "-35% Contributi INPS", lbl_imp_active: "Attiva Regime Impatriati",
+            lbl_spouse_check: "Reddito Coniuge < €2,840",
+            
+            res_expenses: "Spese Deducibili", res_profit: "Imponibile Fiscale", res_tax: "Imposte (Irpef/Sostit.)",
+            res_inps: "Contributi INPS", res_net: "Reddito Netto", res_imp_saving: "Deduzione Impatriati",
+            res_fam_ben: "Benefici Familiari",
+            lbl_total_tax: "Totale Tasse e Contributi:",
+            
+            desc_flat: "<span class='pop-title'>Regime Forfettario</span>Ideale per fatturati < 85k€.<br><br>• <strong>Flat Tax:</strong> 15% (o 5% per primi 5 anni).<br>• <strong>No IVA:</strong> Non applichi IVA in fattura.<br>• <strong>Spese:</strong> Forfettarie (coefficiente).",
+            desc_ord: "<span class='pop-title'>Regime Ordinario</span>Obbligatorio se fatturato > 85k€.<br><br>• <strong>IRPEF:</strong> Aliquote progressive 23%-43%.<br>• <strong>IVA:</strong> Devi applicare l'IVA.<br>• <strong>Impatriati:</strong> Compatibile con lo sconto fiscale 'Rientro Cervelli'.",
+            desc_revenue: "Inserisci il totale incassato (al netto di IVA/Rivalsa).<br><br><strong>Limite:</strong> Sopra 85.000€ si esce dal forfettario l'anno successivo.",
+            desc_type: "Determina il coefficiente di redditività e la cassa INPS.<br><br>• <strong>Professionista:</strong> Consulenti, Designer (Gestione Separata).<br>• <strong>Artigiano:</strong> Negozi, E-commerce, Edilizia (Minimo fisso).",
+            desc_startup: "Per i primi 5 anni di una nuova attività, l'imposta sostitutiva è ridotta dal 15% al <strong>5%</strong>.",
+            desc_inps_red: "Solo per Artigiani/Commercianti in Forfettario.<br><br>Puoi richiedere una <strong>riduzione del 35%</strong> sui contributi INPS fissi e variabili.",
+            desc_imp: "<span class='pop-title'>Lavoratori Impatriati 2025</span>Agevolazione per chi sposta la residenza in Italia.<br><br>• <strong>Bonus:</strong> 50% del reddito è esente tasse.<br>• <strong>Incompatibile</strong> con il Regime Forfettario.",
+            
+            desc_kids: "<span class='pop-title'>Assegno Unico</span>Pagamento diretto INPS per figli < 21 anni.<br><br><strong>Nota:</strong> Calcoliamo l'importo <em>Minimo Garantito</em> (~€57/mese). L'importo reale dipende dall'ISEE (fino a ~€200).",
+            desc_spouse: "<span class='pop-title'>Coniuge a Carico</span>Se il coniuge guadagna meno di €2.840/anno, hai diritto a una detrazione.<br><br>⚠️ <strong>Solo Ordinario:</strong> Non puoi usare questa detrazione nel regime Forfettario.",
+            
+            desc_taxbase: "La cifra su cui paghi le tasse.<br><strong>Forfettario:</strong> Fatturato × Coefficiente - INPS.<br><strong>Ordinario:</strong> Fatturato - Spese Reali - INPS.",
+            desc_exp: "Nel Regime Ordinario deduci i costi reali inerenti l'attività (Computer, Affitto, Software, ecc).",
+            desc_fam_res: "Include <strong>Assegno Unico</strong> (cassa) e Detrazioni Fiscali (per coniuge). Aggiunto al Netto.",
+
+            view_mo: "Mensile", view_yr: "Annuale", net_mo: "Netto (Mese)", net_yr: "Netto (Anno)",
+            alert_limit: "⚠️ SUPERAMENTO 85K: Sopra 85.000 € dovrai passare al Regime Ordinario l'anno prossimo.",
+            alert_imp: "ℹ️ NOTA: Il regime Impatriati richiede il Regime Ordinario (IRPEF). Non è cumulabile con la Flat Tax al 5/15%."
+        },
+        de: {
+            tab_flat: "Pauschal (Forfettario)", tab_ord: "Regulär (Ordinario)",
+            sec_biz: "Geschäftsdaten", sec_fam: "Familie",
+            label_revenue: "Jahresumsatz", label_type: "Tätigkeit", label_startup: "Neugründung (Start-up)",
+            label_inps_red: "INPS Ermäßigung", label_expenses: "Echte Ausgaben", label_impatriati: "Neuansässige (Impatriati)",
+            label_kids: "Kinder (< 21J)", label_spouse: "Ehepartner (abhängig)",
+            
+            opt_freelance: "Freiberufler (Gestione Separata)", 
+            opt_artisan: "Handwerker / Händler", 
+            opt_tech: "IT / Digital / E-commerce",
+
+            lbl_5pct: "5% Steuersatz", lbl_35pct: "-35% INPS Beiträge", lbl_imp_active: "Impatriati-Regime aktivieren",
+            lbl_spouse_check: "Partner-Einkommen < €2,840",
+            
+            res_expenses: "Abziehbare Ausgaben", res_profit: "Steuerbemessung", res_tax: "Einkommensteuer",
+            res_inps: "Sozialvers. (INPS)", res_net: "Netto", res_imp_saving: "Steuerfrei (50%)",
+            res_fam_ben: "Familienbonus",
+            lbl_total_tax: "Gesamtabgaben:",
+            
+            desc_flat: "<span class='pop-title'>Regime Forfettario</span>Beste Option für Umsatz < 85k€.<br><br>• <strong>Flat Tax:</strong> 15% (oder 5% für 5 Jahre).<br>• <strong>Keine MwSt:</strong> Rechnungen ohne IVA.<br>• <strong>Ausgaben:</strong> Pauschal berechnet.",
+            desc_ord: "<span class='pop-title'>Regime Ordinario</span>Pflicht ab > 85k€.<br><br>• <strong>IRPEF:</strong> Progressiv 23%-43%.<br>• <strong>MwSt:</strong> IVA Pflicht.<br>• <strong>Impatriati:</strong> Kompatibel mit Steuerbonus für Zuzügler.",
+            desc_revenue: "Einnahmen netto (ohne MwSt).<br><br><strong>Limit:</strong> Über 85.000€ verlieren Sie den Forfettario-Status im Folgejahr.",
+            desc_type: "Bestimmt Koeffizient und INPS-Kasse.<br><br>• <strong>Freiberufler:</strong> Berater, IT (Gestione Separata).<br>• <strong>Handwerk:</strong> Händler, Shops (Fixbeitrag).",
+            desc_startup: "In den ersten 5 Jahren zahlen Sie statt 15% nur <strong>5%</strong> Ersatzsteuer.",
+            desc_inps_red: "Nur für Handwerker/Händler im Forfettario.<br><br>Sie können <strong>35% Rabatt</strong> auf die INPS-Beiträge beantragen.",
+            desc_imp: "<span class='pop-title'>Lavoratori Impatriati 2025</span>Steuervorteil für Zuzügler.<br><br>• <strong>Vorteil:</strong> 50% des Einkommens steuerfrei.<br>• <strong>Inkompatibel</strong> mit Forfettario (Flat Tax).",
+            
+            desc_kids: "<span class='pop-title'>Assegno Unico</span>Barzahlung der INPS für Kinder < 21.<br><br><strong>Hinweis:</strong> Wir berechnen den <em>garantierten Mindestbetrag</em> (~€57/Monat). Der reale Betrag hängt vom ISEE ab (bis zu ~€200).",
+            desc_spouse: "<span class='pop-title'>Abhängiger Partner</span>Wenn der Partner weniger als €2.840/Jahr verdient, erhalten Sie einen Steuerabzug.<br><br>⚠️ <strong>Nur Ordinario:</strong> Im Forfettario-Regime gibt es diesen Abzug nicht.",
+            
+            desc_taxbase: "Betrag, auf den Steuern gezahlt werden.<br><strong>Forfettario:</strong> Umsatz × Koeffizient - INPS.<br><strong>Ordinario:</strong> Umsatz - Echte Kosten - INPS.",
+            desc_exp: "Im regulären Regime ziehen Sie echte Kosten ab (Laptop, Büro, Software).",
+            desc_fam_res: "Enthält <strong>Assegno Unico</strong> (Bargeld) und Steuerabzüge (für Partner). Wird zum Netto addiert.",
+
+            view_mo: "Monatlich", view_yr: "Jährlich", net_mo: "Netto (Monat)", net_yr: "Netto (Jahr)",
+            alert_limit: "⚠️ UMSATZSCHWELLE (85k): Über 85.000 € müssen Sie ins reguläre System wechseln.",
+            alert_imp: "ℹ️ NOTE: Impatriati-Status erfordert das reguläre System (Ordinario). Nicht kombinierbar mit 5%/15% Flat Tax."
+        }
+    };
+
+    let state = { mode: 'forfettario', lang: 'en', theme: 'light', view: 'yearly' };
+
+    function init() {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            state.theme = 'dark';
+            applyTheme();
+        }
+        document.addEventListener('click', function(e) {
+            const trigger = e.target.closest('.info-trigger');
+            if (trigger) {
+                e.stopPropagation();
+                const id = trigger.getAttribute('data-tip');
+                const target = document.getElementById(id);
+                document.querySelectorAll('.popover').forEach(p => { if (p.id !== id) p.classList.remove('visible'); });
+                if(target) target.classList.toggle('visible');
+            } else if (!e.target.closest('.popover')) {
+                document.querySelectorAll('.popover').forEach(p => p.classList.remove('visible'));
+            }
+        });
+        updateLabels();
+        calc();
+    }
+
+    function toggleTheme() { state.theme = state.theme === 'light' ? 'dark' : 'light'; applyTheme(); }
+    function applyTheme() { document.documentElement.setAttribute('data-theme', state.theme); }
+
+    function toggleLang() {
+        const map = { 'en': 'it', 'it': 'de', 'de': 'en' };
+        state.lang = map[state.lang];
+        document.getElementById('btn-lang').innerText = state.lang.toUpperCase();
+        updateLabels();
+        calc();
+    }
+
+    function updateLabels() {
+        const t = TEXT[state.lang];
+        document.querySelectorAll('[data-t]').forEach(el => {
+            const key = el.getAttribute('data-t');
+            if (t[key]) el.innerHTML = t[key];
+        });
+        document.getElementById('lbl-net').innerText = state.view === 'monthly' ? t.net_mo : t.net_yr;
+    }
+
+    function stepVal(id, direction) {
+        document.getElementById(id).stepUp(direction);
+        calc();
+    }
+
+    function setMode(mode, event) {
+        if(event && event.target.closest('.info-trigger')) return;
+        state.mode = mode;
+        document.getElementById('tab-forfettario').className = mode === 'forfettario' ? 'toggle-btn active' : 'toggle-btn';
+        document.getElementById('tab-ordinario').className = mode === 'ordinario' ? 'toggle-btn active' : 'toggle-btn';
+        
+        document.getElementById('inputs-forfettario').style.display = mode === 'forfettario' ? 'block' : 'none';
+        document.getElementById('inputs-ordinario').style.display = mode === 'ordinario' ? 'block' : 'none';
+        
+        calc();
+    }
+
+    function setView(view) {
+        state.view = view;
+        document.getElementById('view-mo').className = view === 'monthly' ? 'view-btn active' : 'view-btn';
+        document.getElementById('view-yr').className = view === 'yearly' ? 'view-btn active' : 'view-btn';
+        updateLabels();
+        calc();
+    }
+
+    function fmt(n) { return n.toLocaleString(state.lang === 'en' ? 'en-US' : 'de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; }
+
+    function getIrpef(taxable) {
+        if (taxable <= 0) return 0;
+        let tax = 0;
+        let prev = 0;
+        for (let b of CONFIG.irpef) {
+            if (taxable > b.limit) {
+                tax += (b.limit - prev) * b.rate;
+                prev = b.limit;
+            } else {
+                tax += (taxable - prev) * b.rate;
+                return tax;
+            }
+        }
+        return tax;
+    }
+
+    function calc() {
+        const rev = parseFloat(document.getElementById('revenue').value) || 0;
+        const type = document.getElementById('biz-type').value;
+        const kids = parseInt(document.getElementById('kids').value) || 0;
+        const hasSpouse = document.getElementById('is-spouse').checked;
+
+        const div = state.view === 'monthly' ? 12 : 1;
+        const alertBox = document.getElementById('alert-box');
+        
+        let totalTax = 0;
+        let totalInps = 0;
+        let net = 0;
+        let expensesVal = 0;
+        let taxableBase = 0;
+        let familyBenefits = 0; // Cash + Deductions
+
+        let isArtisan = (type === 'artisan' || type === 'tech' && type !== 'freelance'); 
+        if (type === 'freelance') isArtisan = false; 
+        else isArtisan = true;
+
+        // --- ASSEGNO UNICO (Applies to both regimes, cash transfer) ---
+        // Estimating conservatively at minimum amount per child per month * 12
+        let assegnoUnicoTotal = kids * CONFIG.family.assegno_unico_min * 12;
+
+        if (state.mode === 'forfettario') {
+            const isStartup = document.getElementById('is-startup').checked;
+            const isInpsReduced = document.getElementById('is-inps-reduced').checked;
+            document.getElementById('group-inps-reduction').style.display = isArtisan ? 'block' : 'none';
+
+            let coeff = CONFIG.forfettario.coeffs[type] || 0.78;
+            if(type === 'artisan') coeff = 0.67; 
+            
+            expensesVal = rev * (1 - coeff);
+            let grossProfit = rev - expensesVal;
+
+            if (!isArtisan) {
+                totalInps = grossProfit * CONFIG.inps.gs_rate; 
+            } else {
+                let reduction = isInpsReduced ? CONFIG.inps.reduction_factor : 1.0;
+                let fixedInps = CONFIG.inps.artisan_fixed * reduction;
+                let excessIncome = Math.max(0, grossProfit - CONFIG.inps.artisan_min_income);
+                let variableInps = excessIncome * CONFIG.inps.artisan_rate_excess * reduction;
+                totalInps = fixedInps + variableInps;
+            }
+
+            taxableBase = Math.max(0, grossProfit - totalInps);
+
+            let rate = isStartup ? CONFIG.forfettario.rate_start : CONFIG.forfettario.rate_std;
+            totalTax = taxableBase * rate; // No spouse deduction in Forfettario
+
+            if (rev > CONFIG.limits.forfettario) {
+                alertBox.style.display = 'block';
+                alertBox.className = 'limit-alert breach';
+                alertBox.innerHTML = TEXT[state.lang].alert_limit;
+            } else {
+                alertBox.style.display = 'none';
+            }
+            document.getElementById('row-imp-saving').style.display = 'none';
+
+            // Family Benefit = Just Assegno Unico
+            familyBenefits = assegnoUnicoTotal;
+
+        } else {
+            // --- ORDINARIO ---
+            const realExpenses = parseFloat(document.getElementById('expenses-real').value) || 0;
+            const isImpatriati = document.getElementById('is-impatriati').checked;
+
+            expensesVal = realExpenses;
+            let grossProfit = Math.max(0, rev - expensesVal);
+
+            if (!isArtisan) {
+                totalInps = grossProfit * CONFIG.inps.gs_rate;
+            } else {
+                let fixedInps = CONFIG.inps.artisan_fixed;
+                let excessIncome = Math.max(0, grossProfit - CONFIG.inps.artisan_min_income);
+                let variableInps = excessIncome * CONFIG.inps.artisan_rate_excess;
+                totalInps = fixedInps + variableInps;
+            }
+
+            let basePreImpatriati = Math.max(0, grossProfit - totalInps);
+            
+            let impatriatiSaving = 0;
+            if (isImpatriati) {
+                let exemptAmount = basePreImpatriati * 0.5;
+                impatriatiSaving = exemptAmount;
+                taxableBase = basePreImpatriati - exemptAmount;
+                
+                alertBox.style.display = 'block';
+                alertBox.className = 'limit-alert';
+                alertBox.innerHTML = TEXT[state.lang].alert_imp;
+                
+                document.getElementById('row-imp-saving').style.display = 'flex';
+                document.getElementById('out-imp-saving').innerText = fmt(impatriatiSaving/div);
+            } else {
+                taxableBase = basePreImpatriati;
+                document.getElementById('row-imp-saving').style.display = 'none';
+                alertBox.style.display = 'none';
+            }
+
+            let irpef = getIrpef(taxableBase);
+            let addizionali = taxableBase * CONFIG.addizionali;
+            let rawTax = irpef + addizionali;
+
+            // --- SPOUSE DEDUCTION (Ordinario Only) ---
+            let spouseDeduction = 0;
+            if (hasSpouse && taxableBase <= CONFIG.family.spouse_limit) {
+                // Simplified curve for standard incomes (15k-40k range approx 690)
+                // Using a simplified calculation valid for standard ranges
+                if (taxableBase <= 15000) spouseDeduction = 800 - (110 * taxableBase / 15000);
+                else if (taxableBase <= 40000) spouseDeduction = 690;
+                else spouseDeduction = 690 * ((80000 - taxableBase) / 40000);
+                
+                if(spouseDeduction < 0) spouseDeduction = 0;
+            }
+
+            // Apply deduction to tax
+            totalTax = Math.max(0, rawTax - spouseDeduction);
+            
+            // Family Benefits = Assegno Unico (Cash) + The value of the tax deduction
+            // Note for display: The Net Income calculation needs Assegno (Cash) added, and Tax reduced.
+            familyBenefits = assegnoUnicoTotal + spouseDeduction;
+        }
+
+        // Final Net Calculation
+        if(state.mode === 'forfettario') {
+            net = rev - totalInps - totalTax + assegnoUnicoTotal;
+        } else {
+            // For Ordinario: Tax is already reduced by Spouse Deduction. Add Assegno Unico (Cash).
+            net = rev - expensesVal - totalInps - totalTax + assegnoUnicoTotal;
+        }
+
+        document.getElementById('out-exp').innerText = fmt(expensesVal / div);
+        let expRate = rev > 0 ? (expensesVal/rev)*100 : 0;
+        document.getElementById('badge-exp').innerText = expRate.toFixed(0) + '%';
+        document.getElementById('out-profit').innerText = fmt(taxableBase / div);
+        document.getElementById('out-tax').innerText = fmt(totalTax / div);
+        let taxPct = taxableBase > 0 ? (totalTax/taxableBase)*100 : 0;
+        document.getElementById('badge-tax').innerText = taxPct.toFixed(1) + '%';
+        document.getElementById('out-inps-total').innerText = fmt(totalInps / div);
+        
+        // Show family benefits row if > 0
+        if (familyBenefits > 0) {
+            document.getElementById('row-family-benefits').style.display = 'flex';
+            document.getElementById('out-fam-ben').innerText = '+' + fmt(familyBenefits/div);
+        } else {
+            document.getElementById('row-family-benefits').style.display = 'none';
+        }
+
+        document.getElementById('out-net').innerText = fmt(net / div);
+        let totalPaid = totalTax + totalInps;
+        document.getElementById('out-total-paid').innerText = fmt(totalPaid / div);
+        document.getElementById('out-effective-rate').innerText = (rev > 0 ? (totalPaid/rev)*100 : 0).toFixed(1) + '%';
+    }
+
+    init();
+</script>
+</body>
+</html>
