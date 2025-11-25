@@ -49,10 +49,7 @@ There is no installation required. This is a standalone client-side application.
 1.  **Download** the repository or just the `index.html` file.
 2.  **Open** `index.html` in any modern web browser (Chrome, Firefox, Safari, Edge).
 
-Alternatively, you can host it immediately via **GitHub Pages**:
-1.  Go to your repository Settings.
-2.  Select "Pages".
-3.  Choose the `main` branch as the source.
+Alternatively, just run at https://ankhezar.github.io/it.tax.calculator/
 
 ## 🧮 Logic & Regulations (2025)
 
